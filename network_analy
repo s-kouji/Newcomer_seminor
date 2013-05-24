@@ -1,0 +1,101 @@
+=begin
+ 
+ name:gnuplot_data_creater
+ 
+ This program convert an input_file to the file that gnuplot can be available
+ The output_file is data of CDF
+ 
+ cf:
+ 
+ nv_estimated_latency:遅延時間
+ bottoleneck_capacity:物理帯域
+ bottoleneck_available_bandwidth_spruce:利用可能帯域
+ 
+=end
+
+nv_estimated_latency = []
+bottoleneck_capacity = Array.new()
+bottoleneck_available_bandwidth_spruce = Array.new()
+nv_estimated_latency_average = Array.new()
+bottoleneck_capacity_average = Array.new()
+bottoleneck_available_bandwidth_spruce_average = Array.new()
+nv_estimated_latency_counter = Array.new()
+bottoleneck_capacity_counter = Array.new()
+bottoleneck_available_bandwidth_spruce_counter = Array.new()
+tmpstr = String.new
+n = -1
+
+filename = ARGV[0]
+file = open(filename)
+while text = file.gets() do
+    tmp = text.split()  
+    
+    if tmpstr != tmp[0] then
+        tmpstr = tmp[0]
+        n += 1
+        nv_estimated_latency[n] = 0
+        bottoleneck_capacity[n] = 0
+        bottoleneck_available_bandwidth_spruce[n] = 0
+        nv_estimated_latency_counter[n] = 0
+        bottoleneck_capacity_counter[n] = 0
+        bottoleneck_available_bandwidth_spruce_counter[n] = 0
+    end
+  
+    if !(/N.A/ =~ tmp[2]) && (tmp[2] != nil) then
+        nv_estimated_latency[n] += tmp[2].to_i
+        nv_estimated_latency_counter[n] += 1
+    end
+    
+    if !(/N.A/ =~ tmp[4]) && (tmp[4] != nil) then
+        bottoleneck_capacity[n] += tmp[4].to_i
+        bottoleneck_capacity_counter[n] += 1
+    end
+    
+    if !(/N.A/ =~ tmp[6]) && (tmp[6] != nil) then
+        bottoleneck_available_bandwidth_spruce[n] += tmp[6].to_i
+        bottoleneck_available_bandwidth_spruce_counter[n] += 1
+    end
+end
+file.clone()
+     
+n.times do |m|
+    if nv_estimated_latency_counter[m+1] != 0 
+        nv_estimated_latency_average[m] = nv_estimated_latency[m+1] / nv_estimated_latency_counter[m+1]
+    else
+        nv_estimated_latency_average[m] = 0
+    end
+    
+    if bottoleneck_capacity_counter[m+1] != 0 
+        bottoleneck_capacity_average[m] = bottoleneck_capacity[m+1] / bottoleneck_capacity_counter[m+1]
+    else
+        bottoleneck_capacity_average[m] = 0
+    end
+    
+    if bottoleneck_available_bandwidth_spruce_counter[m+1] != 0 
+        bottoleneck_available_bandwidth_spruce_average[m] = bottoleneck_available_bandwidth_spruce[m+1] / bottoleneck_available_bandwidth_spruce_counter[m+1]
+    else
+        bottoleneck_available_bandwidth_spruce_average[m] = 0
+    end
+end
+    
+    io = open("nv_estimated_latency.txt","w+")
+        nv_estimated_latency_average.sort!.each{|value|
+        io.print(value,"\n")
+    }
+    io.close
+    
+    io = open("bottoleneck_capacity.txt","w+")
+        bottoleneck_capacity_average.sort!.each{|value|
+        io.print(value,"\n")
+    }
+    io.close
+    
+    io = open("bottoleneck_available_bandwidth_spruce.txt","w+")
+        bottoleneck_available_bandwidth_spruce_average.sort!.each{|value|
+        io.print(value,"\n")
+    }
+    io.close
+
+
+
+
